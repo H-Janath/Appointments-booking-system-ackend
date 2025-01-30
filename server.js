@@ -5,6 +5,7 @@ import connectDB from './config/mongodb.js';
 import connectCloudinary from './config/cloudinary.js';
 import addminRouter from './routes/adminRoute.js';
 import doctoRouter from './routes/doctorRoute.js';
+import useRouter from './routes/useRouter.js'
 const app = express();
 const port = process.env.PORT ||4000;
 connectDB()
@@ -16,7 +17,8 @@ app.use(cors())
 
 
 app.use('/api/admin',addminRouter);
-app.use('/api/doctor',doctoRouter)
+app.use('/api/doctor',doctoRouter);
+app.use('/api/user',useRouter);
 
 
 app.get('/',(req,res)=>{
