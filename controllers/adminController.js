@@ -24,10 +24,10 @@ const addDoctor = async (req, res) => {
         // Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-console.log('jana')
+
         const imageUpload = await cloudinary.uploader.upload(imageFile.path,{resource_type:"image"})
         const imageUrl = imageUpload.secure_url;
-        console.log(imageUrl)
+
         // Parse address safely
         let parsedAddress;
         try {
@@ -83,4 +83,13 @@ const loginAdmin = async (req, res) => {
     }
 };
 
-export { addDoctor, loginAdmin };
+const allDoctors = async(req,res)=>{
+    try {
+        const doctors = await doctorModel.find({}).select('-password')
+        res.json({success:true, doctors4})
+    } catch (error) {
+        console.log(error)
+        res.json({success:false, message: error.message})
+    }
+}
+export { addDoctor, loginAdmin,allDoctors };
