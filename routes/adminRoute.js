@@ -7,9 +7,9 @@ import { changeAvailability } from '../controllers/doctorController.js';
 
 const addminRouter = express.Router();
 
-addminRouter.post('/add-doctor',authAdmin,upload.single('image'),addDoctor);
+addminRouter.post('/add-doctor',upload.single('image'),addDoctor);
 addminRouter.post('/login',loginAdmin);
-addminRouter.post('/all-doctors',authAdmin,allDoctors);
-addminRouter.post('/change-availabity',authAdmin,changeAvailability);
+addminRouter.post('/all-doctors',allDoctors);
+addminRouter.post('/change-availabity',changeAvailability);
 
 export default addminRouter

@@ -4,6 +4,7 @@ import 'dotenv/config'
 import connectDB from './config/mongodb.js';
 import connectCloudinary from './config/cloudinary.js';
 import addminRouter from './routes/adminRoute.js';
+import doctoRouter from './routes/doctorRoute.js';
 const app = express();
 const port = process.env.PORT ||4000;
 connectDB()
@@ -15,6 +16,7 @@ app.use(cors())
 
 
 app.use('/api/admin',addminRouter);
+app.use('/api/doctor',doctoRouter)
 
 
 app.get('/',(req,res)=>{
