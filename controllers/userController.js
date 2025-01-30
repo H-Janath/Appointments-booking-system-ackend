@@ -170,4 +170,25 @@ const listAppointment = async (req,res)=>{
     return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
   }
 }
-export {registerUser,loginUser,getProfile,updateProfle,bookAppointment,listAppointment}
+
+const cancelAppointment = async (req,res)=>{
+  try {
+    const {userID,appointmentId} = req.body;
+    const appointmentData = await appointmentModel.findById(appointmentId);
+    if(appointmentData.userID !== userID){
+      return res.json({success:false,message:"Unotharized access"})
+    }
+    await appointmentModel.findByIdAndUpdate(appointmentId,{cancelled:true});
+     
+    const {docId,slotDate,slotTime} = appointmentData;
+    const doctorData = await doctorModel.findById(docId);
+    let slots_booked = doctorData.slots_booked;
+    slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !==slotTime)
+    await doctorModel.findByIdAndUpdate(docId,{slots_booked})
+    res.json({success:true,message:'Appointment cancelled'})
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+  }
+}
+export {registerUser,loginUser,getProfile,updateProfle,bookAppointment,listAppointment,cancelAppointment}
