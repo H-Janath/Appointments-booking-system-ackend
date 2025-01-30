@@ -97,50 +97,77 @@ const updateProfle = async(req,res)=>{
     res.json({success:false,message:error.message})
   }
 }
-
-const bookAppointment = async(req,res)=>{
+const bookAppointment = async (req, res) => {
   try {
-    const {userId,docId,slotDate,slotTime} = req.body;
+    const { userId, docId, slotDate, slotTime } = req.body;
+
+    // Fetch doctor data
     const docData = await doctorModel.findById(docId).select('-password');
-    if(!docData.available){
-      return res.json({success:false,message:"Doctor not available"})
+    if (!docData) {
+      return res.json({ success: false, message: "Doctor not found" });
     }
-    let slots_booked = docData.slots_booked;
-     //chaking slot availability
-     if(slots_booked[slotDate]){
-        if(slots_booked[slotDate].includes(slotTime)){
-          return res.json({success:false,message:"Slot not available"})
-        }else{
-          slots_booked[slotDate].push(slotTime);
-          return res.json({success:false,message:"Slot not available"})
-        }
-     }else{
-      slots_booked[slotDate] = []
-      slots_booked[slotDate].push(slotTime)
-     }
-     const userData = await userModel.findById(userId).select('-password')
-      delete docData.slots_booked
 
-      const appoinmentData={
-        userId,
-        docId,
-        userData,
-        docData,
-        ammount:docData.fees,
-        slotTime,
-        slotDate,
-        date:Date.now()
-      }
+    if (!docData.available) {
+      return res.json({ success: false, message: "Doctor not available" });
+    }
 
-      const newAppointment  = new appointmentModel(appoinmentData);
-      await newAppointment.save();
+    // Clone slots_booked to avoid modifying the original object directly
+    let slots_booked = structuredClone(docData.slots_booked || {});
 
-      await doctorModel.findByIdAndUpdate(docId,{slots_booked})
+    // Check slot availability
+    if (!slots_booked[slotDate]) {
+      slots_booked[slotDate] = [];
+    }
 
-      res.json({success:true,message:"Appointment Booked"})
+    if (slots_booked[slotDate].includes(slotTime)) {
+      return res.json({ success: false, message: "Slot not available" });
+    }
+
+    // Book the slot
+    slots_booked[slotDate].push(slotTime);
+
+    // Fetch user data
+    const userData = await userModel.findById(userId).select('-password');
+    if (!userData) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    // Create appointment data
+    const appointmentData = {
+      userId,
+      docId,
+      userData,
+      docData,
+      ammount: docData.fees, // Corrected typo from "ammount" to "amount"
+      slotTime,
+      slotDate,
+      date: new Date(),
+    };
+
+    // Save appointment
+    const newAppointment = new appointmentModel(appointmentData);
+    await newAppointment.save();
+
+    // Update doctor's slots
+    await doctorModel.findByIdAndUpdate(docId, { slots_booked }, { new: true });
+
+    return res.json({ success: true, message: "Appointment booked successfully" });
+
   } catch (error) {
-    console.log(error);
-    res.json({success:false,message:error.message})
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
+  }
+};
+
+
+const listAppointment = async (req,res)=>{
+  try {
+    const {userId} = req.body;
+    const appointment = await appointmentModel.find({userId});
+    res.json({success:true,appointment})
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Internal Server Error", error: error.message });
   }
 }
-export {registerUser,loginUser,getProfile,updateProfle,bookAppointment}
+export {registerUser,loginUser,getProfile,updateProfle,bookAppointment,listAppointment}
